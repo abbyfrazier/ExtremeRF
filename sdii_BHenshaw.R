@@ -55,7 +55,7 @@ rcl <- rbind(c(0, 100, 0))
 rcl2 <- rbind(c(0, 100, 0),
               c(100, 999999, 1)
 )
-# use first twenty files of 1990 as a sample for testing. Can comment out line 54 in prod
+# use first twenty files of 1990 as a sample for testing. Can comment out in prod
 sample <- data[[1]][1:20]
 
 beginCluster(UseCores)
