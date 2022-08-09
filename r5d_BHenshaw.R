@@ -57,7 +57,7 @@ int_dir <- file.path(wd, '1990', 'int')
 sdii_dir <-  file.path(wd, '1990', "sdii")
 output_dir <-  file.path(wd, '1990', "r5d")
 
-foreach (i = 1:length(data[1]), .packages = packages_vector) %dopar% {
+foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
   
   output_file_name <- file.path(output_dir,
                                 paste0(tools::file_path_sans_ext(years[i]),
@@ -91,11 +91,11 @@ foreach (i = 1:length(data[1]), .packages = packages_vector) %dopar% {
   
   # iterate through each file in the year
   # replace line 98 with line 97 in prod
-  for (j in seq(length(data[[i]]) - 5)) {
+  for (j in seq(length(data[[i]]) - 4)) {
   # for (j in seq(length(sample) - 5)) {
     # cat("calculating r5d for sample...\n")
     cat("calculating r5d for", j, "...\n")
-    five_files <- data[[i]][j:j + 5]
+    five_files <- data[[i]][j:j + 4]
     x <- stack(five_files)
     five_day_prcp <- calc(x, sum)
     if (j == 1) {
