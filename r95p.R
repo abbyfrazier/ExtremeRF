@@ -1,3 +1,5 @@
+# Created by: Billy Henshaw
+# Edited 8/10/2022
 # To be run AFTER convert_to_int.R
 
 library(devtools)
