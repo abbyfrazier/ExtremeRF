@@ -1,7 +1,6 @@
-# To be run in this sequence:
-# 1. convert_to_int.R
-# 2. r25_reclass_BHenshaw.R
-# 3. sdii_BHenshaw.R
+# Created by: Billy Henshaw
+# Edited 8/10/2022
+# To be run AFTER convert_to_int.R
 
 library(devtools)
 library(doParallel)
@@ -43,7 +42,7 @@ data <- lapply(years, function(x) {
   list.files(file.path(wd, x, 'int'), 
              full.names = TRUE, 
              all.files = TRUE,
-             pattern = '.asc$',
+             pattern = '.tif$',
              no.. = TRUE)
 }
 )
@@ -64,17 +63,17 @@ unregister_dopar()
 x <- stack()
 y <- stack()
 
-rainyday_dir <- file.path(wd, '1990', 'rainyday_rc')
-rc_dir <- file.path(wd, '1990', 'sdii_rc')
-int_dir <- file.path(wd, '1990', 'int')
-output_dir <-  file.path(wd, '1990', "sdii")
+# uncomment for testing
+# rainyday_dir <- file.path(wd, '1990', 'rainyday_rc')
+# rc_dir <- file.path(wd, '1990', 'sdii_rc')
+# int_dir <- file.path(wd, '1990', 'int')
+# output_dir <-  file.path(wd, '1990', "sdii")
 
-foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
+foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
 
   # create directories inside each year's folder if they don't exist
   dir.create(file.path(wd, years[i], 'rainyday_rc'), showWarnings = FALSE)
   dir.create(file.path(wd, years[i], 'sdii_rc'), showWarnings = FALSE)
-  # dir.create(file.path(wd, years[i], 'int'), showWarnings = FALSE)
   dir.create(file.path(wd, years[i], 'sdii'), showWarnings = FALSE)
 
   rainyday_dir <- file.path(wd, years[i], 'rainyday_rc')
@@ -87,17 +86,16 @@ foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
   y <- stack()
 
   # iterate through each file in the year
-  # replace line 86 with line 85 in prod
-  # for (day in data[[i]]) {
-  for (day in sample) {
+  for (day in data[[i]]) {
+  # for (day in sample) {
     #  prepare new file name
     rd_file_name <- file.path(rainyday_dir, 
                               paste0(basename(tools::file_path_sans_ext(day)),
-                               "_sdii_rainyday.asc"))
+                               "_sdii_rainyday.tif"))
     
     rc_file_name <- file.path(rc_dir,
                               paste0(basename(tools::file_path_sans_ext(day)),
-                                     "_sdii_rc.asc"))
+                                     "_sdii_rc.tif"))
     
     # if the file exists already, go to next day. Allows quick
     # resume after error. Be sure to delete the error output file
@@ -105,7 +103,7 @@ foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
     if (file.exists(rc_file_name)) next
     
     # perform reclassification using reclass matrix
-    cat("reclassing", tools::file_path_sans_ext(day), '\n\n')
+    cat("reclassing", tools::file_path_sans_ext(day), '\n')
     img_rc <- reclassify(
       raster(day),
       rcl,
@@ -115,14 +113,14 @@ foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
     writeRaster(img_rc,
                 filename = rc_file_name,
                 overwrite=T,
-                format="ascii",
+                format="GTiff",
                 datatype="INT2S")
     
     # add reclassed raster to stack
     x <- stack(x, img_rc)
     
     # perform reclassification using reclass matrix
-    cat("reclassing", tools::file_path_sans_ext(day), '(rainy day)\n')
+    cat("reclassing", tools::file_path_sans_ext(day), '(rainy day)\n\n')
     img_rd <- reclassify(
       raster(day),
       rcl2,
@@ -132,7 +130,7 @@ foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
     writeRaster(img_rd,
                 filename = rd_file_name,
                 overwrite=T,
-                format="ascii",
+                format="GTiff",
                 datatype="LOG1S")
     
     y <- stack(y, img_rd)
@@ -140,13 +138,13 @@ foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
   
   output_file_name <- file.path(output_dir,
                                 paste0(tools::file_path_sans_ext(years[i]),
-                                       "_sdii.asc"))
+                                       "_sdii.tif"))
 
   # output_file_name <- file.path(output_dir,
-  #                               'sample.asc')
+  #                               'sample.tif')
 
-  # cat("calculating sdii for", years[i], '\n')
-  cat("calculating sdii for sample...\n")
+  cat("calculating sdii for", years[i], '\n')
+  # cat("calculating sdii for sample...\n")
   
   # perform sum aggregation on raster stack
   img_sum <- calc(x,
@@ -160,7 +158,7 @@ foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
               filename =
                 output_file_name,
               overwrite=T,
-              format="ascii",
+              format="GTiff",
               datatype="FLT4S")
   
 }
