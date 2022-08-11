@@ -1,4 +1,12 @@
+# Created by: Billy Henshaw
+# Edited 8/10/2022
+# Calculate the R5d index (Annual max consecutive 5-day precip)
+# definition from Chu et al. 2010, Journal of Climate
+# run on integer rasters (daily rainfall, 1990-2014)
+# outputs: integer rasters, geotiffs
 # To be run AFTER convert_to_int.R
+
+rm(list=ls())
 
 library(devtools)
 library(doParallel)
@@ -26,7 +34,9 @@ unregister_dopar <- function() {
 }
 
 # set working directory here
-wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc"
+#wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc" # Billy's directory
+wd <- "D:/FromSeagate/WORKING/DailyMaps/All_Islands_Daily_RF_asc" # Abby's directory
+
 setwd(wd)
 
 # create year folders in workspace if they don't exist
@@ -40,28 +50,38 @@ data <- lapply(years, function(x) {
   list.files(file.path(wd, x, 'int'), 
              full.names = TRUE, 
              all.files = TRUE,
-             pattern = '.asc$',
+             pattern = '.tif$',
              no.. = TRUE)
 }
 )
 
 # use first twenty files of 1990 as a sample for testing. Can comment out in prod
-sample <- data[[1]][1:20]
+#sample <- data[[1]][1:20]
 
 beginCluster(UseCores)
 unregister_dopar()
 
-rainyday_dir <- file.path(wd, '1990', 'rainyday_rc')
-rc_dir <- file.path(wd, '1990', 'sdii_rc')
-int_dir <- file.path(wd, '1990', 'int')
-sdii_dir <-  file.path(wd, '1990', "sdii")
-output_dir <-  file.path(wd, '1990', "r5d")
+# uncomment for testing
+#rainyday_dir <- file.path(wd, '1990', 'rainyday_rc')
+#rc_dir <- file.path(wd, '1990', 'sdii_rc')
+#int_dir <- file.path(wd, '1990', 'int')
+#sdii_dir <-  file.path(wd, '1990', "sdii")
+#output_dir <-  file.path(wd, '1990', "r5d")
 
-foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
+foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
+  
+  # create directory inside each year's folder if they don't exist
+  dir.create(file.path(wd, years[i], 'r5d'), showWarnings = FALSE)
+  
+  rainyday_dir <- file.path(wd, years[i], 'rainyday_rc')
+  rc_dir <- file.path(wd, years[i], 'sdii_rc')
+  int_dir <- file.path(wd, years[i], 'int')
+  sdii_dir <-  file.path(wd, years[i], 'sdii')
+  output_dir <-  file.path(wd, years[i], 'r5d')
   
   output_file_name <- file.path(output_dir,
-                                paste0(tools::file_path_sans_ext(years[i]),
-                                       "_r5d.asc"))
+                                paste0(years[i],
+                                       "_r5d.tif"))
   
   # output_file_name <- file.path(output_dir,
   #                               paste0('sample', "_r5d.asc"))
@@ -73,28 +93,14 @@ foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
   
   cat("calculating r5d for", years[i], '\n')
   
-  # create directories inside each year's folder if they don't exist
-  dir.create(file.path(wd, years[i], 'rainyday_rc'), showWarnings = FALSE)
-  dir.create(file.path(wd, years[i], 'sdii_rc'), showWarnings = FALSE)
-  # dir.create(file.path(wd, years[i], 'int'), showWarnings = FALSE)
-  dir.create(file.path(wd, years[i], 'sdii'), showWarnings = FALSE)
-  dir.create(file.path(wd, years[i], 'r5d'), showWarnings = FALSE)
-  
-  rainyday_dir <- file.path(wd, years[i], 'rainyday_rc')
-  rc_dir <- file.path(wd, years[i], 'sdii_rc')
-  int_dir <- file.path(wd, years[i], 'int')
-  sdii_dir <-  file.path(wd, years[i], 'sdii')
-  output_dir <-  file.path(wd, years[i], 'r5d')
-  
   # create empty stacks
   x <- stack()
   
   # iterate through each file in the year
-  # replace line 98 with line 97 in prod
   for (j in seq(length(data[[i]]) - 4)) {
-  # for (j in seq(length(sample) - 5)) {
+    # for (j in seq(length(sample) - 4)) {
     # cat("calculating r5d for sample...\n")
-    cat("calculating r5d for", j, "...\n")
+    cat("calculating r5d for", j, '-', j + 4, "...\n")
     five_files <- data[[i]][j:j + 4]
     x <- stack(five_files)
     five_day_prcp <- calc(x, sum)
@@ -104,14 +110,38 @@ foreach (i = 1:length(data), .packages = packages_vector) %dopar% {
     new_max <- max(five_day_prcp, max_5dp)
     max_5dp <- new_max
   }
-  # 
-
+  
   # convert back to float
   img_r5d <- max_5dp / 100
   writeRaster(img_r5d,
               filename =
                 output_file_name,
               overwrite=T,
-              format="ascii",
+              format="GTiff",
               datatype="FLT4S")
-  }
+}
+
+# free up the cores used for parallel processing
+stopCluster(cl)
+
+# move R5d annual layers to a single folder
+wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
+
+# create r5d_annual directory if it doesn't exist
+dir.create(file.path(wd2, 'r5dann'), showWarnings = FALSE)
+
+for (year in years) {
+  # set wd for each year's r5d folder
+  wd.yr<-file.path(wd, year, 'r5d')
+  setwd(wd.yr)
+  # open raster, then re-write in new folder. 
+  r5d.yr <- raster(paste0(year,"_r5d.tif"))
+  setwd(file.path(wd2,'r5dann'))
+  writeRaster(r5d.yr,
+              filename =
+                paste0(year,"_r5d.tif"),
+              overwrite=T,
+              format="GTiff",
+              datatype="INT2S")
+  
+}
