@@ -1,8 +1,10 @@
 # Created by: Billy Henshaw
-# Edited 8/23/2022 by ABBY
+# Edited 8/23/2022
 # CDD
 ### Find annual maximum consecutive dry days at each pixel from 1990-2014
 # To be run AFTER convert_to_int.R
+
+rm(list=ls())
 
 library(devtools)
 library(doParallel)
@@ -31,7 +33,9 @@ unregister_dopar <- function() {
 }
 
 # set working directory here
-wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc"
+#wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc" # Billy's directory
+wd <- "D:/FromSeagate/WORKING/DailyMaps/All_Islands_Daily_RF_asc" # Abby's directory
+
 setwd(wd)
 
 # create year folders in workspace if they don't exist
@@ -51,6 +55,8 @@ data <- lapply(years, function(x) {
 )
 
 # grab basenames of all files
+#  part of the file path that just includes the file name, including extension
+#  function grabs filename without extension
 basenames <- lapply(
   lapply(
     years, 
@@ -68,7 +74,7 @@ basenames <- lapply(
 
 
 # use first twenty files of 1990 as a sample for testing. Can comment out in prod
-sample <- data[[1]][1:20]
+#sample <- data[[1]][1:20]
 
 beginCluster(UseCores)
 unregister_dopar()
@@ -84,11 +90,12 @@ unregister_dopar()
 
 # reclassification matrix for CDD (<1 mm = 1, everything else = 0)
 # since we are using integer rasters (rainfall * 100), use 100 as threshold
+# less than 1mm is 1, greater or equal to 1mm is 0
 rcl <- rbind(c(0, 100, 1),
              c(100, 9999999, 0)
 )
 
-# function for finding the max consec dry days
+# function for finding the max consec dry days per year
 cdd <- function(y, val = 1) {
   maxval <- with(rle(y), max(lengths[values == val]))
   return(maxval)
@@ -167,3 +174,26 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
 
 # free up the cores used for parallel processing
 stopCluster(cl)
+
+
+# move cdd annual layers to a single folder
+wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
+
+# create cdd_annual directory if it doesn't exist
+dir.create(file.path(wd2, 'cdd_ann'), showWarnings = FALSE)
+
+for (year in years) {
+  # set wd for each year's cdd folder
+  wd.yr<-file.path(wd, year, 'cdd')
+  setwd(wd.yr)
+  # open raster, then re-write in new folder. 
+  cdd.yr <- raster(paste0(year,"_cdd.tif"))
+  setwd(file.path(wd2,'cdd_ann'))
+  writeRaster(cdd.yr,
+              filename =
+                paste0(year,"_cdd.tif"),
+              overwrite=T,
+              format="GTiff",
+              datatype="INT2S")
+  
+}
