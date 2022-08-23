@@ -1,5 +1,5 @@
 # Created by: Billy Henshaw
-# Edited 8/14/2022
+# Edited 8/23/2022 by ABBY
 # CDD
 ### Find annual maximum consecutive dry days at each pixel from 1990-2014
 # To be run AFTER convert_to_int.R
