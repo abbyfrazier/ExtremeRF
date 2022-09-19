@@ -175,23 +175,23 @@ stopCluster(cl)
 
 
 # move cdd annual layers to a single folder
-wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
-
-# create cdd_annual directory if it doesn't exist
-dir.create(file.path(wd2, 'cdd_ann'), showWarnings = FALSE)
-
-for (year in years) {
-  # set wd for each year's cdd folder
-  wd.yr<-file.path(wd, year, 'cdd')
-  setwd(wd.yr)
-  # open raster, then re-write in new folder. 
-  cdd.yr <- raster(paste0(year,"_cdd.tif"))
-  setwd(file.path(wd2,'cdd_ann'))
-  writeRaster(cdd.yr,
-              filename =
-                paste0(year,"_cdd.tif"),
-              overwrite=T,
-              format="GTiff",
-              datatype="INT2S")
-  
-}
+# wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
+# 
+# # create cdd_annual directory if it doesn't exist
+# dir.create(file.path(wd2, 'cdd_ann'), showWarnings = FALSE)
+# 
+# for (year in years) {
+#   # set wd for each year's cdd folder
+#   wd.yr<-file.path(wd, year, 'cdd')
+#   setwd(wd.yr)
+#   # open raster, then re-write in new folder. 
+#   cdd.yr <- raster(paste0(year,"_cdd.tif"))
+#   setwd(file.path(wd2,'cdd_ann'))
+#   writeRaster(cdd.yr,
+#               filename =
+#                 paste0(year,"_cdd.tif"),
+#               overwrite=T,
+#               format="GTiff",
+#               datatype="INT2S")
+#   
+# }

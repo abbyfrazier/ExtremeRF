@@ -81,7 +81,7 @@ sdii_dir <-  file.path(wd, '1990', 'sdii')
 r5d_dir <-  file.path(wd, '1990', 'r5d')
 output_dir <- file.path(wd, '1990', 'r95p')
 
-ann_prcp <- c()
+# ann_prcp <- c()
 
 # quantile function for calculating 95th %ile
 q95 <- function(x){
@@ -175,6 +175,6 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
 
 # free up the cores used for parallel processing
 stopCluster(cl)
-
+# 
 # append the total annual prcp value to the running vector of annual prcp values
-append(ann_prcp, s)
+# append(ann_prcp, s)
