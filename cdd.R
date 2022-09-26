@@ -36,6 +36,12 @@ unregister_dopar <- function() {
 #wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc" # Billy's directory
 wd <- "D:/FromSeagate/WORKING/DailyMaps/All_Islands_Daily_RF_asc" # Abby's directory
 
+# copying cdd annual layers to a single folder
+wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
+
+# create cdd_annual directory if it doesn't exist
+dir.create(file.path(wd2, 'cddann'), showWarnings = FALSE)
+
 setwd(wd)
 
 # create year folders in workspace if they don't exist
@@ -170,30 +176,17 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
               format="GTiff",
               datatype="INT2S")
   
+  # Copy cdd raster to wd2
+
+  output_file_name2 <- file.path(wd2, 
+                                 'cddann',
+                                 paste0(years[i],
+                                        "_cdd.tif"))
+  
+  file.copy(from = output_file_name, 
+            to = output_file_name2)
+  
 }
 
 # free up the cores used for parallel processing
 stopCluster(cl)
-
-
-# move cdd annual layers to a single folder
-wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
-
-# create cdd_annual directory if it doesn't exist
-dir.create(file.path(wd2, 'cdd_ann'), showWarnings = FALSE)
-
-for (year in years) {
-  # set wd for each year's cdd folder
-  wd.yr<-file.path(wd, year, 'cdd')
-  setwd(wd.yr)
-  # open raster, then re-write in new folder. 
-  cdd.yr <- raster(paste0(year,"_cdd.tif"))
-  setwd(file.path(wd2,'cdd_ann'))
-  writeRaster(cdd.yr,
-              filename =
-                paste0(year,"_cdd.tif"),
-              overwrite=T,
-              format="GTiff",
-              datatype="INT2S")
-  
-}

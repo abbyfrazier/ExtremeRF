@@ -32,6 +32,12 @@ unregister_dopar <- function() {
 wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc"
 setwd(wd)
 
+# copying R95p annual layers to a single folder
+wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
+
+# create r95p_annual directory if it doesn't exist
+dir.create(file.path(wd2, 'r95pann'), showWarnings = FALSE)
+
 # create year folders in workspace if they don't exist
 for (year in years) {
   dir.create(file.path(wd, year), showWarnings = FALSE)  
@@ -81,7 +87,7 @@ sdii_dir <-  file.path(wd, '1990', 'sdii')
 r5d_dir <-  file.path(wd, '1990', 'r5d')
 output_dir <- file.path(wd, '1990', 'r95p')
 
-ann_prcp <- c()
+# ann_prcp <- c()
 
 # quantile function for calculating 95th %ile
 q95 <- function(x){
@@ -171,10 +177,20 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
               overwrite = T,
               format = "GTiff",
               datatype = "FLT4S")
+  
+  # Copy r95p raster to wd2
+
+  output_file_name2 <- file.path(wd2, 
+                                 'r95pann',
+                                 paste0(years[i],
+                                        "_r95p.tif"))
+
+  file.copy(from = output_file_name, 
+            to = output_file_name2)
 }
 
 # free up the cores used for parallel processing
 stopCluster(cl)
-
+# 
 # append the total annual prcp value to the running vector of annual prcp values
-append(ann_prcp, s)
+# append(ann_prcp, s)
