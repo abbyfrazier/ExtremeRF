@@ -37,6 +37,12 @@ unregister_dopar <- function() {
 #wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc" # Billy's directory
 wd <- "D:/FromSeagate/WORKING/DailyMaps/All_Islands_Daily_RF_asc" # Abby's directory
 
+# copying R25 annual layers to a single folder
+wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
+
+# create r25_annual directory if it doesn't exist
+dir.create(file.path(wd2, 'r25ann'), showWarnings = FALSE)
+
 setwd(wd)
 
 # create year folders in workspace if they don't exist
@@ -129,30 +135,16 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
               format="GTiff",
               datatype="INT2S")
   
+  # Copy r25 raster to wd2
+  
+  output_file_name2 <- file.path(wd2, 
+                                 'r25ann',
+                                 paste0(years[i],
+                                        "_r25.tif"))
+  
+  file.copy(from = output_file_name, 
+            to = output_file_name2)
 }
 
 # free up the cores used for parallel processing
 stopCluster(cl)
-
-# move r25 annual layers to a single folder
-# wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
-# 
-# # create r25_annual directory if it doesn't exist
-# dir.create(file.path(wd2, 'r25ann'), showWarnings = FALSE)
-# 
-# for (year in years) {
-#   # set wd for each year's r25 folder
-#   wd.yr<-file.path(wd, year, 'r25')
-#   setwd(wd.yr)
-#   
-#   # open raster, then re-write in new folder. 
-#   r25.yr <- raster(paste0(year,"_r25.tif"))
-#   setwd(file.path(wd2,'r25ann'))
-#   writeRaster(r25.yr,
-#               filename =
-#                 paste0(year,"_r25.tif"),
-#               overwrite=T,
-#               format="GTiff",
-#               datatype="INT2S")
-#   
-# }

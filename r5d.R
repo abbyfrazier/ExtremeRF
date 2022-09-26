@@ -35,7 +35,14 @@ unregister_dopar <- function() {
 
 # set working directory here
 #wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc" # Billy's directory
+
 wd <- "D:/FromSeagate/WORKING/DailyMaps/All_Islands_Daily_RF_asc" # Abby's directory
+
+# copying R5d annual layers to a single folder
+wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
+
+# create r5d_annual directory if it doesn't exist
+dir.create(file.path(wd2, 'r5dann'), showWarnings = FALSE)
 
 setwd(wd)
 
@@ -119,29 +126,17 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
               overwrite=T,
               format="GTiff",
               datatype="FLT4S")
+  
+  # Copy r5d raster to wd2
+  
+  output_file_name2 <- file.path(wd2, 
+                                 'r5dann',
+                                 paste0(years[i],
+                                        "_r5d.tif"))
+
+  file.copy(from = output_file_name, 
+            to = output_file_name2)
 }
 
 # free up the cores used for parallel processing
 stopCluster(cl)
-
-# move R5d annual layers to a single folder
-# wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
-# 
-# # create r5d_annual directory if it doesn't exist
-# dir.create(file.path(wd2, 'r5dann'), showWarnings = FALSE)
-# 
-# for (year in years) {
-#   # set wd for each year's r5d folder
-#   wd.yr<-file.path(wd, year, 'r5d')
-#   setwd(wd.yr)
-#   # open raster, then re-write in new folder. 
-#   r5d.yr <- raster(paste0(year,"_r5d.tif"))
-#   setwd(file.path(wd2,'r5dann'))
-#   writeRaster(r5d.yr,
-#               filename =
-#                 paste0(year,"_r5d.tif"),
-#               overwrite=T,
-#               format="GTiff",
-#               datatype="INT2S")
-#   
-# }
