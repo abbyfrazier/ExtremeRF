@@ -112,7 +112,19 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
   # if the file exists already, go to next day. Allows quick
   # resume after error. Be sure to delete the error output file
   # before resuming!
-  if (file.exists(output_file_name)) next
+  if (file.exists(output_file_name)) {
+    # Copy r95p raster to wd2
+    output_file_name2 <- file.path(wd2, 
+                                   'r95pann',
+                                   paste0(years[i],
+                                          "_r95p.tif"))
+    
+    file.copy(from = output_file_name, 
+              to = output_file_name2,
+              overwrite = TRUE)
+    next
+    }
+  
   
   cat("calculating r95p for", years[i], '\n')
   
@@ -136,7 +148,6 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
       raster(day),
       rcl,
       include.lowest = TRUE)
-    wet_days <- stack(wet_days, img_rc)
   }
   
   # pixel-by-pixel total/annual prcp across all days
@@ -163,14 +174,14 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
   img_r95p <- 100 * sum_extreme_prcp / total_prcp
   names(img_r95p) <- basename(tools::file_path_sans_ext(output_file_name))
   
-  # plot r95p against a black background for better visual
-  par(mar = c(2, 2, 2, 2), width = 10, height = 5)
-  raster::plot(img_r95p, 
-               col = rev(brewer.pal(11, 'RdBu')),
-               colNA = 'black',
-               main= names(img_r95p),
-               axes = FALSE,
-               box = FALSE)
+  # # plot r95p against a black background for better visual
+  # par(mar = c(2, 2, 2, 2), width = 10, height = 5)
+  # raster::plot(img_r95p, 
+  #              col = rev(brewer.pal(11, 'RdBu')),
+  #              colNA = 'black',
+  #              main= names(img_r95p),
+  #              axes = FALSE,
+  #              box = FALSE)
   
   writeRaster(img_r95p,
               filename = output_file_name,

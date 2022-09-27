@@ -132,10 +132,15 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
                         paste0(tools::file_path_sans_ext(day),
                                "_cdd_rc.tif"))
     
-    # if the file exists already, go to next day. Allows quick
+    # if the file exists already, add reclass to stack and go to next day. Allows quick
     # resume after error. Be sure to delete the error output file
     # before resuming!
-    if (file.exists(rc_file_name)) next
+    if (file.exists(rc_file_name)) {
+      img_rc <- raster(rc_file_name)
+      # add reclassed raster to stack
+      x <- stack(x, img_rc)
+      next
+    }
     
     # perform reclassification using reclass matrix
     cat("reclassing", tools::file_path_sans_ext(day), '\n')
@@ -156,6 +161,7 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
     
   }
   
+  cat("Number of files in raster stack:", length(as.list(x)))
   output_file_name <- file.path(output_dir,
                                 paste0(years[i],
                                        "_cdd.tif"))

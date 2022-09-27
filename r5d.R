@@ -96,7 +96,18 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
   # if the file exists already, go to next day. Allows quick
   # resume after error. Be sure to delete the error output file
   # before resuming!
-  if (file.exists(output_file_name)) next
+  if (file.exists(output_file_name)) {
+    # Copy r5d raster to wd2
+    output_file_name2 <- file.path(wd2, 
+                                   'r5dann',
+                                   paste0(years[i],
+                                          "_r5d.tif"))
+    
+    file.copy(from = output_file_name, 
+              to = output_file_name2,
+              overwrite = TRUE)
+    next
+  }
   
   cat("calculating r5d for", years[i], '\n')
   

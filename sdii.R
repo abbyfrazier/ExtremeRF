@@ -104,10 +104,19 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
                               paste0(basename(tools::file_path_sans_ext(day)),
                                      "_sdii_rc.tif"))
     
-    # if the file exists already, go to next day. Allows quick
+    # if the file exists already, add reclass to stack and go to next day. Allows quick
     # resume after error. Be sure to delete the error output file
     # before resuming!
-    if (file.exists(rc_file_name)) next
+    if (file.exists(rc_file_name) & file.exists(rd_file_name)) {
+      img_rc <- raster(rc_file_name)
+      # add reclassed raster to stack
+      x <- stack(x, img_rc)
+      
+      img_rd <- raster(rd_file_name)
+      # add reclassed raster to stack
+      y <- stack(y, img_rd)
+      next
+    }
     
     # perform reclassification using reclass matrix
     cat("reclassing", tools::file_path_sans_ext(day), '\n')
@@ -143,6 +152,8 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
     y <- stack(y, img_rd)
   }
   
+  cat("Number of files in raster stack:", length(as.list(x)))
+  cat("Number of files in rainy day raster stack:", length(as.list(y)))
   output_file_name <- file.path(output_dir,
                                 paste0(tools::file_path_sans_ext(years[i]),
                                        "_sdii.tif"))
