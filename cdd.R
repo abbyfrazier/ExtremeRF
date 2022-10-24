@@ -82,8 +82,8 @@ basenames <- lapply(
 # use first twenty files of 1990 as a sample for testing. Can comment out in prod
 #sample <- data[[1]][1:20]
 
-beginCluster(UseCores)
-unregister_dopar()
+#beginCluster(UseCores)
+#unregister_dopar()
 
 # uncomment for testing
 # rainyday_dir <- file.path(wd, '1990', 'rainyday_rc')
@@ -137,12 +137,13 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
     # if the file exists already, add reclass to stack and go to next day. Allows quick
     # resume after error. Be sure to delete the error output file
     # before resuming!
-    if (file.exists(rc_file_name)) {
-      img_rc <- raster(rc_file_name)
-      # add reclassed raster to stack
-      x <- stack(x, img_rc)
-      next
-    }
+#THIS SEEMS TO BE MAKING THE CODE VERY SLOW. IT SEEMS FASTER TO RE-CREATE ALL RC FILES
+#    if (file.exists(rc_file_name)) {
+#      img_rc <- raster(rc_file_name)
+#      # add reclassed raster to stack
+#      x <- stack(x, img_rc)
+#      next
+#    }
     
     # perform reclassification using reclass matrix
     cat("reclassing", tools::file_path_sans_ext(day), '\n')
@@ -168,7 +169,7 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
                                 paste0(years[i],
                                        "_cdd.tif"))
   
-  cat("calculating cdd for", years[i], '\n')
+  cat(". Calculating cdd for", years[i], '\n')
   
   # perform sum aggregation on raster stack
   img_cdd <- calc(x,

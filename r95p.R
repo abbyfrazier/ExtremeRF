@@ -2,6 +2,8 @@
 # Edited 8/10/2022
 # To be run AFTER convert_to_int.R
 
+rm(list=ls())
+
 library(devtools)
 library(doParallel)
 library(ncdf4)
@@ -29,7 +31,9 @@ unregister_dopar <- function() {
 }
 
 # set working directory here
-wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc"
+#wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc"
+wd <- "D:/FromSeagate/WORKING/DailyMaps/All_Islands_Daily_RF_asc" # Abby's directory
+
 setwd(wd)
 
 # copying R95p annual layers to a single folder
@@ -74,7 +78,7 @@ basenames <- lapply(
 rcl <- rbind(c(0, 100, NA))
 
 # use first twenty files of 1990 as a sample for testing. Can comment out in prod
-sample <- data[[1]][1:20]
+#sample <- data[[1]][1:20]
 
 beginCluster(UseCores)
 unregister_dopar()
@@ -112,18 +116,18 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
   # if the file exists already, go to next day. Allows quick
   # resume after error. Be sure to delete the error output file
   # before resuming!
-  if (file.exists(output_file_name)) {
-    # Copy r95p raster to wd2
-    output_file_name2 <- file.path(wd2, 
-                                   'r95pann',
-                                   paste0(years[i],
-                                          "_r95p.tif"))
-    
-    file.copy(from = output_file_name, 
-              to = output_file_name2,
-              overwrite = TRUE)
-    next
-    }
+#  if (file.exists(output_file_name)) {
+#    # Copy r95p raster to wd2
+#    output_file_name2 <- file.path(wd2, 
+#                                   'r95pann',
+#                                   paste0(years[i],
+#                                          "_r95p.tif"))
+#    
+#    file.copy(from = output_file_name, 
+#              to = output_file_name2,
+#              overwrite = TRUE)
+#    next
+#    }
   
   
   cat("calculating r95p for", years[i], '\n')

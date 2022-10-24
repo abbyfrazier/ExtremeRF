@@ -2,6 +2,8 @@
 # Edited 8/10/2022
 # To be run AFTER convert_to_int.R
 
+rm(list=ls())
+
 library(devtools)
 library(doParallel)
 library(ncdf4)
@@ -28,7 +30,8 @@ unregister_dopar <- function() {
 }
 
 # set working directory here
-wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc"
+#wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc"
+wd <- "D:/FromSeagate/WORKING/DailyMaps/All_Islands_Daily_RF_asc" # Abby's directory
 
 # copying SDII annual layers to a single folder
 wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
@@ -62,7 +65,7 @@ rcl2 <- rbind(c(0, 100, 0),
               c(100, 999999, 1)
 )
 # use first twenty files of 1990 as a sample for testing. Can comment out in prod
-sample <- data[[1]][1:20]
+#sample <- data[[1]][1:20]
 
 beginCluster(UseCores)
 unregister_dopar()
@@ -107,16 +110,16 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
     # if the file exists already, add reclass to stack and go to next day. Allows quick
     # resume after error. Be sure to delete the error output file
     # before resuming!
-    if (file.exists(rc_file_name) & file.exists(rd_file_name)) {
-      img_rc <- raster(rc_file_name)
-      # add reclassed raster to stack
-      x <- stack(x, img_rc)
-      
-      img_rd <- raster(rd_file_name)
-      # add reclassed raster to stack
-      y <- stack(y, img_rd)
-      next
-    }
+#    if (file.exists(rc_file_name) & file.exists(rd_file_name)) {
+#      img_rc <- raster(rc_file_name)
+#      # add reclassed raster to stack
+#      x <- stack(x, img_rc)
+#      
+#      img_rd <- raster(rd_file_name)
+#      # add reclassed raster to stack
+#      y <- stack(y, img_rd)
+#      next
+#    }
     
     # perform reclassification using reclass matrix
     cat("reclassing", tools::file_path_sans_ext(day), '\n')
