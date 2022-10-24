@@ -99,6 +99,16 @@ q95 <- function(x){
 }
 
 foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
+  # create directory inside each year's folder if they don't exist
+  dir.create(file.path(wd, years[i], 'r95p'), showWarnings = FALSE)
+  
+  #rainyday_dir <- file.path(wd, years[i], 'rainyday_rc')
+  #rc_dir <- file.path(wd, years[i], 'sdii_rc')
+  #int_dir <- file.path(wd, years[i], 'int')
+  #sdii_dir <-  file.path(wd, years[i], 'sdii')
+  #r5d_dir <-  file.path(wd, years[i], 'r5d')
+  output_dir <-  file.path(wd, years[i], 'r95p')
+  
   
   # initialize new raster stack for all prcp
   all_days = stack()
@@ -134,15 +144,7 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
   
   # cat("calculating r95p for 1990\n")
   
-  # create directory inside each year's folder if they don't exist
-  dir.create(file.path(wd, years[i], 'r95p'), showWarnings = FALSE)
-  
-  rainyday_dir <- file.path(wd, years[i], 'rainyday_rc')
-  rc_dir <- file.path(wd, years[i], 'sdii_rc')
-  int_dir <- file.path(wd, years[i], 'int')
-  sdii_dir <-  file.path(wd, years[i], 'sdii')
-  r5d_dir <-  file.path(wd, years[i], 'r5d')
-  output_dir <-  file.path(wd, years[i], 'r95p')
+
   
   # reclass each day in the year to show only wet pixels
   for (day in data[[i]]) {
