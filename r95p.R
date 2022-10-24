@@ -84,12 +84,12 @@ beginCluster(UseCores)
 unregister_dopar()
 
 # uncomment for testing
-rainyday_dir <- file.path(wd, '1990', 'rainyday_rc')
-rc_dir <- file.path(wd, '1990', 'sdii_rc')
-int_dir <- file.path(wd, '1990', 'int')
-sdii_dir <-  file.path(wd, '1990', 'sdii')
-r5d_dir <-  file.path(wd, '1990', 'r5d')
-output_dir <- file.path(wd, '1990', 'r95p')
+#rainyday_dir <- file.path(wd, '1990', 'rainyday_rc')
+#rc_dir <- file.path(wd, '1990', 'sdii_rc')
+#int_dir <- file.path(wd, '1990', 'int')
+#sdii_dir <-  file.path(wd, '1990', 'sdii')
+#r5d_dir <-  file.path(wd, '1990', 'r5d')
+#output_dir <- file.path(wd, '1990', 'r95p')
 
 # ann_prcp <- c()
 
