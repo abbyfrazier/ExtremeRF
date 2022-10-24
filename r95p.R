@@ -154,6 +154,7 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
       raster(day),
       rcl,
       include.lowest = TRUE)
+    wet_days <- stack(wet_days, img_rc)
   }
   
   # pixel-by-pixel total/annual prcp across all days
