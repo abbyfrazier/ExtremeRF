@@ -1,6 +1,7 @@
 # Created by: Billy Henshaw
-# Edited 8/10/2022
+# Edited 11/7/2022: fixed typo - should work now! (AF)
 # To be run AFTER convert_to_int.R
+# r95p: fraction of ann total precip from events exceeding 95th percentile
 
 rm(list=ls())
 
@@ -12,7 +13,8 @@ library(dplyr)
 library(ClusterR)
 library(RColorBrewer)
 
-rasterOptions(progress = 'text', timer = TRUE)
+#progress bar for all raster operations.
+#rasterOptions(progress = 'text', timer = TRUE)
 
 packages_vector <- c('ncdf4', 'raster', 'dplyr')
 
@@ -33,14 +35,14 @@ unregister_dopar <- function() {
 }
 
 # set working directory here
-wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc"
-# wd <- "D:/FromSeagate/WORKING/DailyMaps/All_Islands_Daily_RF_asc" # Abby's directory
+#wd <- "F:/DATA/HawaiiEP/All_Islands_Daily_RF_asc"
+wd <- "D:/FromSeagate/WORKING/DailyMaps/All_Islands_Daily_RF_asc" # Abby's directory
 
 setwd(wd)
 
 # copying R95p annual layers to a single folder
-# wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
-wd2 <- "F:/HawaiiEP/ExtremeRF/temp"
+wd2 <- "D:/FromSeagate/WORKING/DailyMaps" # Abby's directory
+#wd2 <- "F:/HawaiiEP/ExtremeRF/temp"
 
 # create r95p_annual directory if it doesn't exist
 dir.create(file.path(wd2, 'r95pann'), showWarnings = FALSE)
@@ -101,6 +103,8 @@ q95 <- function(x){
   quantile(x, 0.95, na.rm = TRUE)
 }
 
+#i=1
+
 foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
   # create directory inside each year's folder if they don't exist
   dir.create(file.path(wd, years[i], 'r95p'), showWarnings = FALSE)
@@ -144,8 +148,7 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
   
   
   cat("calculating r95p for", years[i], '\n')
-  
-  # cat("calculating r95p for 1990\n")
+    # cat("calculating r95p for 1990\n")
   
   all_days <- stack(data[[i]])
   wet_days <- stack(data[[i]]) %>% 
@@ -164,36 +167,36 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
   # }
   
   # pixel-by-pixel total/annual prcp across all days
-  print('TEST1')
+  #print('TEST1')
   sum_prcp_all <- calc(all_days, fun = sum, na.rm = TRUE)
-  print('TEST1 done')
+  #print('TEST1 done')
   
   # calculates 95th %ile of prcp on wet days, pixel-by-pixel
   extreme_threshold <- calc(wet_days, fun = q95)
-  print('TEST2 done')
+  #print('TEST2 done')
   
   # finds which pixels had more prcp than the extreme threshold
   is_extreme <- wet_days > extreme_threshold
-  print('TEST3 done')
+  #print('TEST3 done')
   
   # names all layers w respective file name
   names(is_extreme) <- basenames[[i]]
-  print('TEST4 done')
+  #print('TEST4 done')
   # names(is_extreme) <- basenames[[1]][1:length(sample)]
   
   # prcp values only at extreme pixels
   prcp_extreme_only <- wet_days * is_extreme
   names(prcp_extreme_only) <- basenames[[i]]
-  print('TEST5 done')
+  #print('TEST5 done')
   
   # total precip at extreme pixels
-  sum_prcp_extreme <- sum(prcp_extreme_only)
-  print('TEST6 done')
+  sum_prcp_extreme <- sum(prcp_extreme_only, na.rm = TRUE)
+  #print('TEST6 done')
   
   # calculate r95p
-  img_r95p <- 100 * sum_extreme_prcp / total_prcp
+  img_r95p <- 100 * sum_prcp_extreme / sum_prcp_all
   names(img_r95p) <- basename(tools::file_path_sans_ext(output_file_name))
-  print('TEST7 done')
+  #print('TEST7 done')
   
   # # plot r95p against a black background for better visual
   # par(mar = c(2, 2, 2, 2), width = 10, height = 5)
@@ -209,19 +212,19 @@ foreach (i = 1:length(years), .packages = packages_vector) %dopar% {
               overwrite = T,
               format = "GTiff",
               datatype = "FLT4S")
-  print('TEST8 done')
+  #print('TEST8 done')
   # Copy r95p raster to wd2
 
-  # output_file_name2 <- file.path(wd2, 
-  #                                'r95pann',
-  #                                paste0(years[i],
-  #                                       "_r95p.tif"))
-  # 
-  # writeRaster(img_r95p,
-  #             filename = output_file_name2,
-  #             overwrite = T,
-  #             format = "GTiff",
-  #             datatype = "FLT4S")
+   output_file_name2 <- file.path(wd2, 
+                                  'r95pann',
+                                  paste0(years[i],
+                                         "_r95p.tif"))
+   
+   writeRaster(img_r95p,
+               filename = output_file_name2,
+               overwrite = T,
+               format = "GTiff",
+               datatype = "FLT4S")
 }
 
 # free up the cores used for parallel processing
